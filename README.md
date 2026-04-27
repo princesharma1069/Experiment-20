@@ -3,35 +3,101 @@
 This experiment focuses on End-to-End Data Analysis and Predictive Modeling, specifically applied to a COVID-19 dataset.
 The theory centers on the data science lifecycle, which begins with data ingestion and cleaning, followed by exploratory analysis to find trends (such as growth rates in confirmed cases), and concludes with machine learning to predict future outcomes. By integrating libraries for data manipulation, visualization, and predictive modeling, this program demonstrates how to transform raw pandemic data into actionable insights, such as identifying hotspots or forecasting mortality trends.
 
-pd.read_csv(): Loads the COVID-19 dataset from a CSV file into a pandas DataFrame for processing.
+Parameter breakdown: locations="Country/Region": The column containing the geographic identifiers (country names).
+locationmode="country names": Tells Plotly to match the string values against its built-in country name lookup table.
+color="Confirmed": The column whose values control the fill colour of each country.
+color_continuous_scale="reds": A sequential colour palette where low values appear light red and high values appear dark red.
+range_color=[0, 10000000]: Fixes the minimum and maximum of the colour scale explicitly, ensuring consistent colour mapping regardless of data extremes. Without this, the scale auto-adjusts, which can visually distort lightly affected regions.
 
-df.info(): Provides a summary of the dataset, including column names, data types, and non-null counts to identify missing values.
+A second map is generated identically but with color="Recovered" and color_continuous_scale="greens", allowing a direct visual comparison of confirmed versus recovered case distributions across the globe.
 
-df.describe(): Generates statistical summaries like mean, standard deviation, and quartiles for the numerical pandemic data.
+image image
+The full dataset is filtered using boolean indexing to keep only rows where Country/Region equals "India", producing a dedicated india DataFrame. Province-level exploration is then performed: nunique() counts how many distinct state names appear in the Province/State column, and unique() lists all of those state names as recorded in the dataset.
 
-df.isnull().sum(): Detects and counts the number of missing entries in each column to assess data quality.
+image
+India Choropleth Map — Custom GeoJSON with px.choropleth():
 
-df.drop(): Removes irrelevant or redundant columns (like 'SNo' or 'Last Update') to focus the analysis on key variables.
+Unlike the world map which uses Plotly's built-in country boundaries, mapping Indian states requires custom geographic boundary data. A GeoJSON file containing state outlines is downloaded from a public GitHub URL using urllib.request.urlopen() and parsed into a Python dictionary using json.load(). A copy of top_state is made using copy() and an Active column is computed on it before passing it to the map function.
 
-pd.to_datetime(): Converts date strings into standardized datetime objects to allow for time-series analysis.
+px.choropleth() is called with the following key parameters:
 
-df.groupby(): Aggregates data by specific categories, such as 'ObservationDate' or 'Country/Region', to calculate totals.
+geojson=india_geojson: Passes the custom GeoJSON geometry so Plotly knows the boundaries of each Indian state.
+featureidkey="properties.NAME_1": The path within the GeoJSON feature properties that holds the state name. Plotly matches values at this path against the locations column to link each row of data to its corresponding boundary on the map.
+locations="Province/State": The DataFrame column containing state names to match against the GeoJSON.
+color="Confirmed": The column whose values determine the fill colour intensity.
+hover_name="Province/State": The column whose value appears as the primary label in the interactive tooltip when hovering over a state.
+hover_data={"Confirmed": True, "Recovered": True, "Active": True}: Specifies additional columns to display in the hover tooltip alongside the primary label.
+color_continuous_scale="Reds": The colour palette applied to the fill.
+title: Sets the figure title to "COVID-19 Confirmed Cases by Indian State".
+labels={"Confirmed": "Confirmed Cases"}: Renames the colour bar label for clarity.
 
-sns.lineplot(): Visualizes the temporal progression of confirmed cases, deaths, or recoveries over time.
+Key pandas Commands Used:
 
-plt.figure(figsize=...): Sets the dimensions of the visualization to ensure charts are clear and readable.
+pd.read_csv(): Loads a CSV file into a DataFrame.
 
-train_test_split(): Partitions the dataset into training and testing subsets to evaluate the performance of predictive models.
+data.head(n): Displays the first n rows (default 5).
 
-LinearRegression(): Initializes a machine learning model used to predict the value of a dependent variable based on independent features.
+data.drop(): Removes specified rows or columns.
 
-model.fit(): Trains the machine learning model by finding the best-fit relationship between the input features and target labels.
+data.info(): Displays column names, dtypes, and null counts.
 
-model.predict(): Uses the trained model to generate forecasts or estimates for unseen data.
+col.astype(): Converts a column to a specified data type.
 
-mean_squared_error(): Calculates the average squared difference between predicted and actual values to measure model accuracy.
+col.max(): Returns the maximum value in a column.
 
-px.choropleth(): Creates an interactive world or regional map to visualize the geographic spread of the virus.
+data[condition]: Filters rows using a boolean condition.
+
+col.value_counts(): Counts occurrences of each unique value.
+
+col.nunique(): Returns the count of distinct values.
+
+col.unique(): Returns an array of distinct values.
+
+data.groupby(): Groups data by a column for aggregation.
+
+sum(): Sums values within each group.
+
+reset_index(): Moves the group key back to a regular column.
+
+sort_values(): Sorts rows by one or more columns.
+
+col.fillna(): Replaces missing NaN values with a given value.
+
+data.iloc[]: Accesses rows by integer position.
+
+col.values[0]: Extracts the first value as a Python scalar.
+
+data.shape: Returns a (rows, columns) tuple.
+
+df.copy(): Creates an independent copy of a DataFrame.
+
+Plotly Express Commands Used:
+
+px.choropleth(): Creates an interactive choropleth map.
+
+locations=: Column containing geographic identifiers.
+
+locationmode="country names": Matches strings to built-in country boundaries.
+
+geojson=: Custom GeoJSON for sub-national boundaries.
+
+featureidkey=: Path in GeoJSON properties to match locations.
+
+color=: Column mapped to fill colour.
+
+color_continuous_scale=: Named colour palette for the fill gradient.
+
+range_color=: Fixes the minimum and maximum of the colour scale.
+
+hover_name=: Primary label shown in the interactive tooltip.
+
+hover_data=: Additional columns shown in the tooltip.
+
+fig.update_geos(): Configures map zoom, fit, and base layer visibility.
+
+fig.update_layout(): Sets title, margins, and colour bar appearance.
+
+fig.show(): Renders and displays the final interactive figure.
 
 ## Conclusion:
 Through this project, it is concluded that a systematic Data Science approach is vital for understanding global crises like COVID-19. By combining data cleaning, statistical visualization, and machine learning, we can not only describe the historical spread of a disease but also build models that provide significant foresight into potential future trends.
